@@ -18,10 +18,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
+    play_thread.cpp \
+    play_thread1.cpp \
     subthread.cpp \
     widget.cpp
 
 HEADERS += \
+    play_thread.h \
+    play_thread1.h \
     subthread.h \
     widget.h
 
@@ -38,6 +42,9 @@ LIBS += $$PWD/lib/avcodec.lib  \
         $$PWD/lib/postproc.lib  \
         $$PWD/lib/swresample.lib  \
         $$PWD/lib/swscale.lib  \
+
+INCLUDEPATH += D:\development\SDL2-2.30.4\x86_64-w64-mingw32\include
+LIBS += D:\development\SDL2-2.30.4\x86_64-w64-mingw32\bin\SDL2.dll
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
