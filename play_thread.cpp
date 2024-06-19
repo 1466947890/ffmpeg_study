@@ -2,13 +2,8 @@
 
 Play_Thread::Play_Thread(QObject* parent) : QThread(parent)
 {
-
+    user_data = new UserData();
 }
-
-int bufferLen;
-char* bufferData;
-
-
 
 void _audioCallback (void *userdata,
                      Uint8 * stream,
@@ -16,20 +11,21 @@ void _audioCallback (void *userdata,
 {
     // 清空缓冲区
     SDL_memset(stream, 0, len);
+    UserData* user_data = (UserData*) userdata;
 
-    if(bufferLen == 0)
+    if(user_data ->len == 0)
     {
         return;
     }
     // 每次获取一下len的长度
-    len = (len > bufferLen) ? bufferLen : len;
+    len = (len > user_data->len) ? user_data->len : len;
     // 填充数据buffer
-    SDL_MixAudio(stream, (Uint8*) bufferData, len, SDL_MIX_MAXVOLUME);
+    SDL_MixAudio(stream, user_data->data_ptr, len, SDL_MIX_MAXVOLUME);
 
     // 指针要进行移动。
-    bufferData += len;
+    user_data->data_ptr += len;
 
-    bufferLen -= len;
+    user_data->len -= len;
 
 
 };
@@ -50,6 +46,7 @@ void Play_Thread::run()
     spc.channels = 2;
     spc.callback = _audioCallback;
     spc.samples = 1024;
+    spc.userdata = this->user_data;
 
     // 打开文件
     QFile file("./test.pcm");
@@ -74,14 +71,15 @@ void Play_Thread::run()
     // 读取文件数据
     while(!isFinished())
     {
-        bufferLen = file.read(audio_buffer, sizeof(char[4096]));
-        if(bufferLen <= 0)
+
+        this->user_data->len = file.read(audio_buffer, sizeof(char[4096]));
+        if(this->user_data->len <= 0)
         {
             break; // 代表到了文件尾
         }
-        bufferData = audio_buffer;
+        this->user_data->data_ptr = (Uint8*) audio_buffer;
         // 休眠，让这个线程休眠，等待下次拉取
-        while (bufferLen > 0) {
+        while (this->user_data->len > 0) {
             SDL_Delay(1);
         }
     }
@@ -90,4 +88,13 @@ void Play_Thread::run()
 
 
 
+
+
+
+
+}
+
+Play_Thread::~Play_Thread()
+{
+    delete user_data;
 }
